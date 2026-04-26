@@ -2,7 +2,9 @@ import React from 'react'
 
 const ReactDoc = () => {
   return (
-    <div>ReactDoc</div>
+    <div>
+      ReactDoc
+    </div>
   )
 }
 
