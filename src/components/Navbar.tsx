@@ -1,210 +1,265 @@
 "use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
-import { useEffect, useState, useId } from 'react';
-import { Menu, X } from 'lucide-react'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useId } from "react";
+import { Menu, X } from "lucide-react";
 
 const navItems = [
-  { name: 'Algorithms', href: '/algorithms' },
-  { name: 'Documentation', href: '/documentation' },
-  { name: 'Visualizer', href: '/visualizer' },
+  { name: "Algorithms",    href: "/algorithms" },
+  { name: "Documentation", href: "/documentation" },
+  { name: "Visualizer",    href: "/visualizer" },
 ];
 
+// ─── Theme Toggle Icon ────────────────────────────────────────────────────────
+function ThemeIcon({ theme }: { theme: "light" | "dark" }) {
+  return theme === "light" ? (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  ) : (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
+// ─── Logo ─────────────────────────────────────────────────────────────────────
+function Logo({ gradId, lineGradId, glowId, mounted, theme }: {
+  gradId: string; lineGradId: string; glowId: string;
+  mounted: boolean; theme: "light" | "dark";
+}) {
+  return (
+    <Link href="/" className="flex items-center gap-2 shrink-0">
+      <svg className="h-11" viewBox="0 0 320 90" preserveAspectRatio="xMinYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stopColor="#818CF8" />
+            <stop offset="50%"  stopColor="#A78BFA" />
+            <stop offset="100%" stopColor="#F472B6" />
+          </linearGradient>
+          <linearGradient id={lineGradId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stopColor="#818CF8" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#F472B6" stopOpacity="0.3" />
+          </linearGradient>
+          <filter id={glowId}>
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Icon */}
+        <g transform="translate(12, 10)" filter={`url(#${glowId})`}>
+          <g stroke={`url(#${lineGradId})`} strokeWidth="1.5" strokeLinecap="round">
+            <line x1="18" y1="32" x2="44" y2="10" />
+            <line x1="44" y1="10" x2="70" y2="32" />
+            <line x1="70" y1="32" x2="58" y2="60" />
+            <line x1="58" y1="60" x2="30" y2="60" />
+            <line x1="30" y1="60" x2="18" y2="32" />
+            <line x1="44" y1="40" x2="18" y2="32" />
+            <line x1="44" y1="40" x2="44" y2="10" />
+            <line x1="44" y1="40" x2="70" y2="32" />
+          </g>
+          <circle cx="18" cy="32" r="4"   fill="#818CF8" opacity="0.9" />
+          <circle cx="44" cy="10" r="5.5" fill={`url(#${gradId})`} />
+          <circle cx="70" cy="32" r="4"   fill="#34D399"  opacity="0.9" />
+          <circle cx="58" cy="60" r="3.5" fill="#A78BFA"  opacity="0.85" />
+          <circle cx="30" cy="60" r="3.5" fill="#F472B6"  opacity="0.85" />
+          <circle cx="44" cy="40" r="5"   fill={`url(#${gradId})`} />
+        </g>
+
+        {/* Wordmark */}
+        <text x="96" y="50" fontFamily="var(--font-geist-sans), system-ui, sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.5">
+          <tspan fill={mounted ? (theme === "dark" ? "#EDE9FF" : "#1A1523") : "#EDE9FF"}>Algo</tspan>
+          <tspan fill={`url(#${gradId})`}>Visuals</tspan>
+        </text>
+        <text x="96" y="67" fontFamily="var(--font-geist-mono), monospace" fontSize="9" fontWeight="500" letterSpacing="2.5"
+          fill={mounted ? (theme === "dark" ? "#8878B0" : "#6B6787") : "#8878B0"}>
+          SEE ALGORITHMS EVOLVE
+        </text>
+      </svg>
+    </Link>
+  );
+}
+
+// ─── Mobile Drawer ────────────────────────────────────────────────────────────
+function MobileDrawer({
+  open, onClose, pathname,
+}: {
+  open: boolean; onClose: () => void; pathname: string;
+}) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            onClick={onClose}
+          />
+          {/* Drawer panel */}
+          <motion.div
+            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+            transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+            className="fixed top-0 right-0 bottom-0 z-50 w-72 flex flex-col p-6 md:hidden"
+            style={{ background: "var(--surface)", borderLeft: "1px solid var(--border)" }}
+          >
+            <button
+              onClick={onClose}
+              className="self-end mb-8 p-2 rounded-lg transition-colors"
+              style={{ color: "var(--muted)" }}
+            >
+              <X size={20} />
+            </button>
+
+            <nav className="flex flex-col gap-1">
+              {navItems.map((item) => {
+                const isActive = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={onClose}
+                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all"
+                    style={{
+                      background: isActive ? "color-mix(in srgb, var(--accent) 12%, transparent)" : "transparent",
+                      color: isActive ? "var(--accent)" : "var(--muted)",
+                    }}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
 export default function Navbar() {
   const pathname = usePathname();
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, setTheme]   = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // FIX: React's useId() includes colons (e.g., ":r0:").
-  // Colons break SVG url(#) references. We must strip them.
-  const rawId = useId().replace(/:/g, '');
-  // console.log(useId())
-  const brandGradId = `brand-${rawId}`;
-  const lineGradId = `line-${rawId}`;
-  const glowId = `glow-${rawId}`;
+  const rawId      = useId().replace(/:/g, "");
+  const gradId     = `nb-grad-${rawId}`;
+  const lineGradId = `nb-line-${rawId}`;
+  const glowId     = `nb-glow-${rawId}`;
 
-  // Handle mounting and theme initialization safely for SSR
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem('theme') as "light" | "dark" | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (saved) setTheme(saved);
   }, []);
 
   useEffect(() => {
-    if (mounted) {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-    }
+    if (!mounted) return;
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme, mounted]);
 
   const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
 
   return (
-    <nav
-      // FIX: Added 'sticky' so top-0 actually works
-      className="w-full h-14 top-0 z-50 flex justify-center px-4 py-4 bg-transparent custom-dashed-horizontal"
-      style={{ borderColor: 'var(--border)' }}
-    >
-      <div className="w-full h-full flex items-center justify-between">
+    <>
+      <nav
+        className="w-full h-14 sticky top-0 z-30 flex items-center justify-between px-5"
+        style={{
+          background: mounted
+            ? theme === "dark"
+              ? "rgba(13, 11, 20, 0.85)"
+              : "rgba(245, 244, 255, 0.85)"
+            : "rgba(13, 11, 20, 0.85)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "1px solid var(--border)",
+        }}
+      >
         {/* Logo */}
-        <div className="h-full flex items-center justify-center">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-tighter"
-            style={{ color: "var(--text)" }}
+        <Logo
+          gradId={gradId}
+          lineGradId={lineGradId}
+          glowId={glowId}
+          mounted={mounted}
+          theme={theme}
+        />
+
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-1">
+          {navItems.map((item) => {
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="relative px-4 py-1.5 text-sm font-medium rounded-full transition-colors duration-200"
+                style={{ color: isActive ? "var(--accent)" : "var(--muted)" }}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="nav-pill"
+                    className="absolute inset-0 rounded-full"
+                    style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)" }}
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                  />
+                )}
+                <span className="relative z-10">{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Right controls */}
+        <div className="flex items-center gap-2">
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200"
+            style={{
+              background: "transparent",
+              color: "var(--muted)",
+              border: "1px solid var(--border)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "var(--accent)";
+              (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "var(--muted)";
+              (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+            }}
+            aria-label="Toggle theme"
+            suppressHydrationWarning
           >
-            <svg
-              className="h-14"
-              viewBox="0 0 350 110"
-              preserveAspectRatio="xMinYMid meet"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <linearGradient id={brandGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#0EA5E9" />
-                  <stop offset="50%" stopColor="#6366F1" />
-                  <stop offset="100%" stopColor="#8B5CF6" />
-                </linearGradient>
+            {mounted ? <ThemeIcon theme={theme} /> : <div className="w-4 h-4" />}
+          </button>
 
-                <linearGradient id={lineGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#0EA5E9" stopOpacity="0.25" />
-                  <stop offset="50%" stopColor="#6366F1" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.25" />
-                </linearGradient>
-
-                <filter id={glowId} x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="2" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-
-              {/* Icon */}
-              <g transform="translate(20,15)" filter={`url(#${glowId})`}>
-                <g stroke={`url(#${lineGradId})`} strokeWidth="2" strokeLinecap="round">
-                  <line x1="20" y1="35" x2="50" y2="12" />
-                  <line x1="50" y1="12" x2="80" y2="35" />
-                  <line x1="80" y1="35" x2="65" y2="68" />
-                  <line x1="65" y1="68" x2="35" y2="68" />
-                  <line x1="35" y1="68" x2="20" y2="35" />
-                  <line x1="50" y1="45" x2="20" y2="35" />
-                  <line x1="50" y1="45" x2="50" y2="12" />
-                  <line x1="50" y1="45" x2="80" y2="35" />
-                </g>
-
-                <circle cx="20" cy="35" r="4.5" fill="#6366F1" opacity="0.9" />
-                <circle cx="50" cy="12" r="6.5" fill={`url(#${brandGradId})`} />
-                <circle cx="80" cy="35" r="4.5" fill="#22C55E" opacity="0.9" />
-                <circle cx="65" cy="68" r="3.8" fill="#4ADE80" opacity="0.8" />
-                <circle cx="35" cy="68" r="3.8" fill="#818CF8" opacity="0.8" />
-                <circle cx="50" cy="45" r="6" fill={`url(#${brandGradId})`} />
-              </g>
-
-              {/* Text */}
-              <text
-                x="130"
-                y="58"
-                fontFamily="Inter, system-ui, sans-serif"
-                fontSize="30"
-                fontWeight="700"
-              >
-                {/* FIX: Safe color hydration preserving original hex codes */}
-                <tspan fill={mounted ? (theme === "dark" ? "#f1f5f4" : "#0F172A") : "#f1f5f4"}>
-                  Algo{" "}
-                </tspan>
-                <tspan fill={`url(#${brandGradId})`}>Visuals</tspan>
-              </text>
-
-              {/* Tagline */}
-              <text
-                x="130"
-                y="80"
-                fontFamily="Inter, system-ui, sans-serif"
-                fontSize="10"
-                fontWeight="600"
-                fill={mounted ? (theme === "dark" ? "#f1f5f4" : "#0F172A") : "#f1f5f4"}
-                letterSpacing="2"
-              >
-                SEE ALGORITHMS EVOLVE
-              </text>
-            </svg>
-          </Link>
+          {/* Mobile hamburger — FIXED BUG-08: wired to drawer */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+            style={{ color: "var(--muted)", border: "1px solid var(--border)" }}
+            aria-label="Open menu"
+          >
+            <Menu size={16} />
+          </button>
         </div>
-        <div className="flex w-3/4 max-w-2xl bg-red-400 h-full items-center justify-end px-2">
-          <div className="flex items-center justify-around w-4/5 h-full max-w-2xl">
-            <div className="flex items-center justify-between gap-1 w-2/3 h-full">
-              {navItems.map((item) => {
-                const isActive = pathname?.startsWith(item.href);
+      </nav>
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      'relative px-8 py-6 text-xs font-bold uppercase tracking-widest transition-none',
-                      isActive
-                        ? 'text-white dark:text-black'
-                        : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-                    )}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-nav-bubble"
-                        className="absolute -inset-2 z-0 bg-zinc-900 dark:bg-zinc-100 rounded-md p-4"
-                        transition={{
-                          type: 'spring',
-                          stiffness: 100,
-                          damping: 10,
-                          mass: 0.2,
-                        }}
-                      />
-                    )}
-                    <span className="relative z-10">{item.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={toggleTheme}
-              className="w-8 h-8 flex items-center justify-center border transition-colors hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
-              style={{
-                borderColor: "var(--border)",
-                color: "var(--muted)",
-                background: "transparent",
-              }}
-              aria-label="Toggle Theme"
-              data-lpignore="true"
-              suppressHydrationWarning={true}
-            >
-              {mounted ? (
-                theme === "light" ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-                  </svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
-                )
-              ) : (
-                <div className="w-[14px] h-[14px]" />
-              )}
-            </button>  
-            <div className="hamberger">
-              <Menu size={24}/>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+      {/* Mobile drawer */}
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} pathname={pathname} />
+    </>
   );
 }

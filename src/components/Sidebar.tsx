@@ -1,95 +1,85 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { cn } from "@/lib/utils"
-import { NAV } from "@/lib/docsNav"
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { NAV } from "@/lib/docsNav";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type NavGroup = (typeof NAV)[keyof typeof NAV]
+type NavGroup = (typeof NAV)[keyof typeof NAV];
 
-// ─── Highlight ────────────────────────────────────────────────────────────────
+// ─── Search Highlight ─────────────────────────────────────────────────────────
 function Highlighted({ text, query }: { text: string; query: string }) {
-  if (!query) return <>{text}</>
-  const idx = text.toLowerCase().indexOf(query.toLowerCase())
-  if (idx < 0) return <>{text}</>
-
+  if (!query) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx < 0) return <>{text}</>;
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-yellow-200/60 dark:bg-yellow-500/30 text-yellow-900 dark:text-yellow-200 rounded-[2px] px-[2px]">
+      <mark
+        className="rounded-sm px-[2px]"
+        style={{ background: "color-mix(in srgb, var(--accent) 25%, transparent)", color: "var(--accent)" }}
+      >
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
     </>
-  )
+  );
 }
 
 // ─── Group Section ────────────────────────────────────────────────────────────
 function GroupSection({
-  group,
-  isOpen,
-  onToggle,
-  pathname,
-  query,
-  sidebarCollapsed,
+  group, isOpen, onToggle, pathname, query, collapsed,
 }: {
-  group: NavGroup
-  isOpen: boolean
-  onToggle: () => void
-  pathname: string
-  query: string
-  sidebarCollapsed: boolean
+  group: NavGroup; isOpen: boolean; onToggle: () => void;
+  pathname: string; query: string; collapsed: boolean;
 }) {
   const filtered = useMemo(() => {
-    if (!query) return group.items
-    const q = query.toLowerCase()
-    return group.items.filter((i) =>
-      i.label.toLowerCase().includes(q)
-    )
-  }, [group.items, query])
+    if (!query) return group.items;
+    const q = query.toLowerCase();
+    return group.items.filter((i) => i.label.toLowerCase().includes(q));
+  }, [group.items, query]);
 
-  if (query && filtered.length === 0) return null
+  if (query && filtered.length === 0) return null;
 
-  const isExpanded = (!sidebarCollapsed && isOpen) || query.length > 0
+  const isExpanded = (!collapsed && isOpen) || query.length > 0;
 
   return (
-    <div className="border-b" style={{ borderColor: "var(--border)" }}>
-      {/* Group Header */}
+    <div className="px-3 py-1">
+      {/* Group header */}
       <button
         onClick={onToggle}
+        title={collapsed ? group.label : undefined}
         className={cn(
-          "w-full flex items-center gap-3 transition-colors duration-200 outline-none focus-visible:ring-2 ring-inset ring-[var(--accent)]",
-          sidebarCollapsed ? "justify-center px-0 py-4" : "px-5 py-3",
-          "hover:bg-black/5 dark:hover:bg-white/5"
+          "w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150 outline-none",
+          "hover:bg-[color-mix(in_srgb,var(--accent)_6%,transparent)]",
+          collapsed && "justify-center"
         )}
-        title={sidebarCollapsed ? group.label : undefined}
       >
-        <span style={{ color: group.color }} className="shrink-0 transition-transform duration-200 hover:scale-110">
+        <span style={{ color: group.color }} className="shrink-0">
           {group.icon}
         </span>
-
-        {!sidebarCollapsed && (
+        {!collapsed && (
           <>
             <span
-              className="text-[14px] font-semibold uppercase tracking-[0.08em] flex-1 truncate text-left"
-              style={{ color: "var(--muted)", fontFamily: "var(--font-mono)" }}
+              className="flex-1 text-xs font-semibold tracking-wide text-left truncate"
+              style={{ color: "var(--muted)", fontFamily: "var(--font-geist-mono, monospace)" }}
             >
-              {group.label}
+              {group.label.toUpperCase()}
             </span>
-
-            <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/5" style={{ color: "var(--muted)" }}>
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded-full"
+              style={{ background: "var(--surface-2)", color: "var(--muted)" }}
+            >
               {filtered.length}
             </span>
-
             <motion.span
               animate={{ rotate: isExpanded ? 90 : 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="text-[var(--muted)]"
+              transition={{ duration: 0.2 }}
+              style={{ color: "var(--muted)" }}
             >
-              <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                 <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </motion.span>
@@ -97,165 +87,180 @@ function GroupSection({
         )}
       </button>
 
-      {/* Items (Smooth Height Accordion) */}
+      {/* Items accordion */}
       <AnimatePresence initial={false}>
-        {isExpanded && !sidebarCollapsed && (
+        {isExpanded && !collapsed && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] }} // Smooth ease-out
+            transition={{ duration: 0.28, ease: [0.04, 0.62, 0.23, 0.98] }}
             className="overflow-hidden"
           >
-            <div className="pb-3 pt-1 px-3 flex flex-col gap-0.5">
+            <div className="pt-1 pb-2 flex flex-col gap-0.5">
               {filtered.map((item) => {
-                const isActive = pathname === item.href
-
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-3 px-4 py-2 rounded-md outline-none group focus-visible:ring-2 ring-[var(--accent)]"
+                    className={cn(
+                      "relative flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-150",
+                      "outline-none focus-visible:ring-2 ring-[var(--accent)] group"
+                    )}
+                    style={{
+                      background: isActive
+                        ? "color-mix(in srgb, var(--accent) 12%, transparent)"
+                        : "transparent",
+                      color: isActive ? "var(--text)" : "var(--muted)",
+                      fontWeight: isActive ? 500 : 400,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLElement).style.background =
+                          "color-mix(in srgb, var(--accent) 6%, transparent)";
+                        (e.currentTarget as HTMLElement).style.color = "var(--text)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLElement).style.background = "transparent";
+                        (e.currentTarget as HTMLElement).style.color = "var(--muted)";
+                      }
+                    }}
                   >
-                    {/* Liquid active background */}
+                    {/* Active dot */}
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-200"
+                      style={{
+                        background: isActive ? "var(--accent)" : "var(--border-2)",
+                        opacity: isActive ? 1 : 0.6,
+                        transform: isActive ? "scale(1.3)" : "scale(1)",
+                      }}
+                    />
+                    <span className="truncate text-[13px]">
+                      <Highlighted text={item.label} query={query} />
+                    </span>
+                    {/* Active indicator line */}
                     {isActive && (
-                      <motion.div
-                        layoutId="active-nav-pill"
-                        className="inset-0 rounded-md"
-                        style={{ background: "var(--accent-soft)" }}
-                        transition={{
-                          type: "spring",
-                          bounce: 0.15, // Less bouncy, more liquid
-                          duration: 0.5,
-                        }}
+                      <motion.span
+                        layoutId={`active-pill-${group.id}`}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full"
+                        style={{ background: "var(--accent)" }}
+                        transition={{ type: "spring", bounce: 0.1, duration: 0.4 }}
                       />
                     )}
-
-                    <div className="flex items-center gap-3 z-10 w-full transition-transform duration-200 group-hover:translate-x-1 group-active:scale-[0.98]">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full transition-all duration-300"
-                        style={{
-                          background: isActive ? "var(--accent)" : "var(--muted)",
-                          opacity: isActive ? 1 : 0.4,
-                          transform: isActive ? "scale(1.2)" : "scale(1)",
-                        }}
-                      />
-
-                      <span
-                        className="truncate text-[14px] transition-colors duration-200"
-                        style={{
-                          color: isActive ? "var(--text)" : "var(--muted)",
-                          fontWeight: isActive ? 500 : 400,
-                        }}
-                      >
-                        <Highlighted text={item.label} query={query} />
-                      </span>
-                    </div>
                   </Link>
-                )
+                );
               })}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 export default function Sidebar() {
-  const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
-  const [query, setQuery] = useState("")
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+  const [query, setQuery] = useState("");
 
   const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
-    const initial = new Set<string>()
-    if (pathname.startsWith("/algorithms")) initial.add("algorithms")
-    else if (pathname.startsWith("/documentation")) initial.add("documentation")
-    else if (pathname.startsWith("/visualizer")) initial.add("visualizers")
-    else initial.add("algorithms")
-    return initial
-  })
+    const initial = new Set<string>();
+    if (pathname.startsWith("/algorithms"))   initial.add("algorithms");
+    else if (pathname.startsWith("/documentation")) initial.add("documentation");
+    else if (pathname.startsWith("/visualizer"))    initial.add("visualizer");
+    else initial.add("algorithms");
+    return initial;
+  });
 
   const isSidebarPage =
     pathname.startsWith("/algorithms") ||
     pathname.startsWith("/documentation") ||
-    pathname.startsWith("/visualizer")
+    pathname.startsWith("/visualizer");
 
-  const toggleGroup = (id: string) => {
+  if (!isSidebarPage) return null;
+
+  const activeKey   = pathname.split("/")[1] as keyof typeof NAV;
+  const activeGroup = NAV[activeKey];
+
+  const toggleGroup = (id: string) =>
     setOpenGroups((prev) => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const handleGroupClick = (id: string) => {
-    if (collapsed) setCollapsed(false)
-    toggleGroup(id)
-  }
-
-  if (!isSidebarPage) return null
-
-  const activeKey = pathname.split("/")[1] as keyof typeof NAV
-  const activeGroup = NAV[activeKey]
+    if (collapsed) setCollapsed(false);
+    toggleGroup(id);
+  };
 
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 64 : 280 }}
-      transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-      className="shrink-0 flex flex-col h-full border-r bg-(--surface) border-(--border)"
+      animate={{ width: collapsed ? 60 : 256 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+      className="shrink-0 flex flex-col h-full"
+      style={{
+        background: "var(--surface)",
+        borderRight: "1px solid var(--border)",
+      }}
     >
-      {/* Search Header */}
-      <div className={cn("p-3 w-full border-b flex items-center justify-between transition-all duration-300 border-(--border)", collapsed && "justify-center")}>
-        {!collapsed ? (
-          <div className="flex items-center justify-between">
-            {/* Search Icon */}
-            <div className="left-2 aspect-square h-9 flex items-center justify-center text-(--muted)">
-              <svg className="h-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+      {/* Search + collapse header */}
+      <div
+        className={cn(
+          "flex items-center gap-2 p-3 border-b",
+          collapsed && "justify-center"
+        )}
+        style={{ borderColor: "var(--border)" }}
+      >
+        {!collapsed && (
+          <div
+            className="flex items-center flex-1 gap-2 px-3 py-1.5 rounded-lg"
+            style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+          >
+            <svg className="shrink-0 opacity-50" width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {/* FIXED BUG-03: removed bg-blue-800 debug class */}
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search Topics"
-              className="w-full bg-blue-800 h-9 pl-8 text-sm rounded-md outline-none transition-all duration-200"
-              style={{ background: "var(--bg)", color: "var(--text)" }}
+              placeholder="Search…"
+              className="flex-1 bg-transparent text-[13px] outline-none min-w-0"
+              style={{ color: "var(--text)" }}
             />
             {query && (
-              <button 
+              <button
                 onClick={() => setQuery("")}
-                className=" text-(--muted) h-9 aspect-square hover:text-(--text) transition-colors flex items-center justify-center"
+                className="shrink-0 opacity-50 hover:opacity-100 transition-opacity"
+                style={{ color: "var(--muted)" }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6"  y2="18" />
+                  <line x1="6"  y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             )}
           </div>
-        ) : null}
+        )}
 
-        {/* Toggle Collapse Button */}
+        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "h-full  aspect-square flex items-center justify-center rounded-md transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-(--muted) hover:text-(--text)",
-            collapsed && "w-10 h-10" // slightly larger tap target when collapsed
+            "shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-150",
+            "hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
           )}
+          style={{ color: "var(--muted)" }}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <svg 
-            width="18" 
-            height="18" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
+          <svg
+            width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             className={cn("transition-transform duration-300", collapsed && "rotate-180")}
           >
             <path d="M15 18l-6-6 6-6" />
@@ -263,8 +268,8 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Nav Content */}
-      <nav className="flex-1 overflow-y-auto scrollbar-hide custom-scrollbar">
+      {/* Nav content */}
+      <nav className="flex-1 overflow-y-auto py-2">
         {activeGroup && (
           <GroupSection
             group={activeGroup}
@@ -272,10 +277,10 @@ export default function Sidebar() {
             onToggle={() => handleGroupClick(activeGroup.id)}
             pathname={pathname}
             query={query}
-            sidebarCollapsed={collapsed}
+            collapsed={collapsed}
           />
         )}
       </nav>
     </motion.aside>
-  )
+  );
 }
