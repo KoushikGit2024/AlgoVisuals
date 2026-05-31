@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import dynamic from 'next/dynamic';
+
+// const CppVisualizer = dynamic(() => import('@/actions/CppVisualizer'), { 
+//   ssr: false,
+//   loading: () => <div className="p-8 text-center animate-pulse">Loading C++ Parser Engine...</div>
+// });
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BARS = [42, 18, 67, 31, 85, 24, 58, 73, 12, 90, 47, 36, 61, 79, 28];
@@ -128,7 +134,7 @@ function SortingBars() {
   const max = Math.max(...bars);
 
   return (
-    <div className="flex items-end gap-[3px] h-28" aria-hidden>
+    <div className="flex items-end gap-0.75 h-28" aria-hidden>
       {bars.map((h, i) => {
         const isActive = i === active[0] || i === active[1];
         return (
@@ -203,7 +209,7 @@ function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.06 }}
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.0] tracking-tight mb-6"
+            className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-none tracking-tight mb-6"
             style={{ color: "var(--text)" }}
           >
             See
@@ -307,7 +313,7 @@ function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full md:w-[360px] lg:w-[400px] shrink-0 rounded-2xl overflow-hidden"
+          className="w-full md:w-90 lg:w-100 shrink-0 rounded-2xl overflow-hidden"
           style={{
             border: "1px solid var(--border)",
             background: "var(--surface)",
@@ -433,7 +439,7 @@ function Features() {
           >
             {/* Icon with gradient bg */}
             <div
-              className={`w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br ${f.gradient}`}
+              className={`w-10 h-10 flex items-center justify-center rounded-xl bg-linear-to-br ${f.gradient}`}
               style={{ color: "#fff" }}
             >
               {f.icon}
@@ -537,10 +543,13 @@ function Footer() {
 export default function LandingPage() {
   return (
     <div className="relative w-full" style={{ background: "var(--bg)" }}>
-      <Hero />
+      {/* <Hero />
       <Features />
       <CTABanner />
-      <Footer />
+      <Footer /> */}
+      hi
+      {/* <CppVisualizer/> */}
+      {/* <CodeEditor/> */}
     </div>
   );
 }

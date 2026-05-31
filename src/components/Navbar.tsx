@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useId } from "react";
 import { Menu, X } from "lucide-react";
@@ -159,6 +158,7 @@ export default function Navbar() {
   const glowId     = `nb-glow-${rawId}`;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const saved = localStorage.getItem("theme") as "light" | "dark" | null;
     if (saved) setTheme(saved);

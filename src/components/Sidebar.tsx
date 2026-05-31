@@ -18,7 +18,7 @@ function Highlighted({ text, query }: { text: string; query: string }) {
     <>
       {text.slice(0, idx)}
       <mark
-        className="rounded-sm px-[2px]"
+        className="px-[2px]"
         style={{ background: "color-mix(in srgb, var(--accent) 25%, transparent)", color: "var(--accent)" }}
       >
         {text.slice(idx, idx + query.length)}
@@ -52,7 +52,7 @@ function GroupSection({
         onClick={onToggle}
         title={collapsed ? group.label : undefined}
         className={cn(
-          "w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150 outline-none",
+          "w-full flex items-center gap-2.5 px-2.5 py-2 transition-all duration-150 outline-none",
           "hover:bg-[color-mix(in_srgb,var(--accent)_6%,transparent)]",
           collapsed && "justify-center"
         )}
@@ -69,7 +69,7 @@ function GroupSection({
               {group.label.toUpperCase()}
             </span>
             <span
-              className="text-[10px] px-1.5 py-0.5 rounded-full"
+              className="text-[10px] px-1.5 py-0.5"
               style={{ background: "var(--surface-2)", color: "var(--muted)" }}
             >
               {filtered.length}
@@ -105,8 +105,8 @@ function GroupSection({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "relative flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-150",
-                      "outline-none focus-visible:ring-2 ring-[var(--accent)] group"
+                      "relative flex items-center gap-2.5 px-3 py-1.5 text-sm transition-all duration-150",
+                      "outline-none focus-visible:ring-2 ring-(--accent) group"
                     )}
                     style={{
                       background: isActive
@@ -130,14 +130,15 @@ function GroupSection({
                     }}
                   >
                     {/* Active dot */}
-                    <span
+                    {/* <span
                       className="w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-200"
                       style={{
                         background: isActive ? "var(--accent)" : "var(--border-2)",
                         opacity: isActive ? 1 : 0.6,
                         transform: isActive ? "scale(1.3)" : "scale(1)",
                       }}
-                    />
+                    /> */}
+                    <span className="w-4 h-2"/>
                     <span className="truncate text-[13px]">
                       <Highlighted text={item.label} query={query} />
                     </span>
@@ -177,9 +178,9 @@ export default function Sidebar() {
   });
 
   const isSidebarPage =
-    pathname.startsWith("/algorithms") ||
-    pathname.startsWith("/documentation") ||
-    pathname.startsWith("/visualizer");
+    pathname.startsWith("/algorithms/") ||
+    pathname.startsWith("/documentation/") ||
+    pathname.startsWith("/visualizer/");
 
   if (!isSidebarPage) return null;
 
@@ -189,7 +190,11 @@ export default function Sidebar() {
   const toggleGroup = (id: string) =>
     setOpenGroups((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
 
@@ -232,6 +237,8 @@ export default function Sidebar() {
               placeholder="Search…"
               className="flex-1 bg-transparent text-[13px] outline-none min-w-0"
               style={{ color: "var(--text)" }}
+              suppressHydrationWarning
+              
             />
             {query && (
               <button
@@ -252,7 +259,7 @@ export default function Sidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            "shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-150",
+            "shrink-0 w-7 h-7 flex items-center justify-center transition-all duration-150",
             "hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
           )}
           style={{ color: "var(--muted)" }}

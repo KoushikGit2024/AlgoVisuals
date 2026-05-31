@@ -3,9 +3,9 @@ import Link from 'next/link'
 const DocDirector = () => {
   return (
     <div className='flex items-center justify-center gap-4'>
-        <Link href="/documentations/javascript">JavaScript</Link>
-        <Link href="/documentations/postgre">PostgreSQL</Link>
-        <Link href="/documentations/tailwind">Tailwind CSS</Link>
+        <Link href="/documentation/javascript">JavaScript</Link>
+        <Link href="/documentation/postgresql">PostgreSQL</Link>
+        <Link href="/documentation/tailwind">Tailwind CSS</Link>
     </div>
   )
 }

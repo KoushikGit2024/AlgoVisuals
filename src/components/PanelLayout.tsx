@@ -23,6 +23,7 @@ function usePanel(key: string) {
     const saved = localStorage.getItem(key)
     if (saved) {
       const { w, c } = JSON.parse(saved)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWidth(w)
       setCollapsed(c)
     }
@@ -137,7 +138,7 @@ export default function PanelLayout({
   }, [leftPanel, rightPanel])
 
   // ---------- HANDLE UI ----------
-  const Handle = ({ side }: { side: Side }) => (
+  const renderHandle = (side: Side) => (
     <div
       onMouseDown={(e) => {
         dragging.current = side
@@ -184,7 +185,7 @@ export default function PanelLayout({
           !leftPanel.isDragging && "transition-[width] duration-300 ease-out" // Only animate when NOT dragging
         )}
       >
-        <Handle side="left" />
+        {renderHandle("left")}
         <div className={cn(
           "h-full w-full overflow-hidden transition-opacity duration-200",
           leftPanel.collapsed ? "opacity-0" : "opacity-100"
@@ -210,7 +211,7 @@ export default function PanelLayout({
             !rightPanel.isDragging && "transition-[width] duration-300 ease-out"
           )}
         >
-          <Handle side="right" />
+          {renderHandle("right")}
           <div className={cn(
             "h-full w-full overflow-hidden transition-opacity duration-200",
             rightPanel.collapsed ? "opacity-0" : "opacity-100"

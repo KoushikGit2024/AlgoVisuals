@@ -179,11 +179,18 @@ function useVisualizer(frames: Frame[], speedMs: number) {
   const [idx, setIdx]         = useState(0);
   const [playing, setPlaying] = useState(false);
 
-  useEffect(() => { setIdx(0); setPlaying(false); }, [frames]);
+  useEffect(() => { 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIdx(0); 
+    setPlaying(false); 
+  }, [frames]);
 
   useEffect(() => {
     if (!playing || idx >= frames.length - 1) {
-      if (idx >= frames.length - 1) setPlaying(false);
+      if (idx >= frames.length - 1) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPlaying(false);
+      }
       return;
     }
     const t = setTimeout(() => setIdx((p) => p + 1), speedMs);
